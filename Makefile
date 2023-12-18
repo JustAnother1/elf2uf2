@@ -7,7 +7,7 @@ $(TARGET): $(OBJECTS)
 	gcc -ggdb $^ $(LIBS) -o $@
 
 elf2uf2.o: elf2uf2.c
-	gcc -ggdb -c $< -o $@
+	gcc -ggdb --pedantic -Wall -c $< -o $@
 
 all: $(TARGET)
 	size elf2uf2

@@ -94,7 +94,7 @@ static family allFamilies[] = {
 };
 
 static bool verbose = false;
-static uint32_t fam_id = 0;
+static uint64_t fam_id = 0;
 static unsigned long int payload_size = 256;
 static char* elf_name = NULL;
 static char* uf2_name = NULL;
@@ -199,7 +199,7 @@ static void report_family(void)
             return;
         }
     }
-    printf("creating UF2 file for the unknown family id 0x%08x\n", fam_id);
+    printf("creating UF2 file for the unknown family id 0x%08lx\n", fam_id);
 }
 
 static void print_all_families(void)
@@ -319,7 +319,7 @@ static int copy_data(FILE* elf_file)
     UF2_Block.magicStart1 = 0x9E5D5157;
     UF2_Block.magicEnd = 0x0AB16F30;
     UF2_Block.flags = 0x00002000;
-    UF2_Block.fileSize = fam_id;
+    UF2_Block.fileSize = (uint32_t)(fam_id & 0xffffffff);
     UF2_Block.payloadSize = payload_size;
     UF2_Block.blockNo = 0;
     UF2_Block.numBlocks =  num;
@@ -448,7 +448,7 @@ static int parse_command_line_parameters(int argc, char *argv[])
             break;
 
         case 'f' :
-            fam_id = strtol(optarg, &test, 16);
+            fam_id = strtoll(optarg, &test, 16);
             if('\0' == *test)
             {
                 // OK
