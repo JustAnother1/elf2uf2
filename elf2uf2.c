@@ -199,7 +199,7 @@ static void report_family(void)
             return;
         }
     }
-    printf("creating UF2 file for the unknown family id 0x%08lx\n", fam_id);
+    printf("creating UF2 file for the unknown family id 0x%08llx\n", fam_id);
 }
 
 static void print_all_families(void)
