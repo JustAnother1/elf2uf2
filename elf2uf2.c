@@ -320,9 +320,8 @@ static int copy_data(FILE* elf_file)
     UF2_Block.magicEnd = 0x0AB16F30;
     UF2_Block.flags = 0x00002000;
     UF2_Block.fileSize = (uint32_t)(fam_id & 0xffffffff);
-    UF2_Block.payloadSize = payload_size;
     UF2_Block.blockNo = 0;
-    UF2_Block.numBlocks =  num;
+    UF2_Block.numBlocks = num;
 
     // create UF2 file
     uf2_file = fopen(uf2_name, "wb");
@@ -360,6 +359,7 @@ static int copy_data(FILE* elf_file)
             // write a UF2 Block
             memset(UF2_Block.data, 0, 476);
             memcpy(UF2_Block.data, buffer, copy_size);
+            UF2_Block.payloadSize = copy_size;
             cur_mem->target_size = cur_mem->target_size - copy_size;
             cur_mem->target_start_addr = cur_mem->target_start_addr + copy_size;
             if(copy_size < payload_size)
@@ -392,6 +392,7 @@ static int copy_data(FILE* elf_file)
                             return 27;
                         }
                         memcpy(&UF2_Block.data[copy_size], buffer, bytes_to_fill);
+                        UF2_Block.payloadSize = UF2_Block.payloadSize + bytes_to_fill;
                         cur_mem->target_size = cur_mem->target_size - bytes_to_fill;
                         cur_mem->target_start_addr = cur_mem->target_start_addr + bytes_to_fill;
                     }
