@@ -410,6 +410,13 @@ static int copy_data(FILE* elf_file)
             if(copy_size < payload_size)
             {
                 // last block not completely filled
+                int bytes_to_fill = payload_size - copy_size;
+                if(false == last_block_exact_size)
+                {
+                    // if the boot loader writes the unused data then it better be 0xff.
+                    memset(&(UF2_Block.data[copy_size]), 0xff, bytes_to_fill);
+                }
+
                 // -> check if next memory area is directly attached
                 if(NULL != cur_mem->next)
                 {
@@ -417,7 +424,6 @@ static int copy_data(FILE* elf_file)
                     cur_mem = cur_mem->next;
                     if(end_address == cur_mem->target_start_addr)
                     {
-                        int bytes_to_fill = payload_size - copy_size;
                         // this is a continuation
                         if(0 != fseek(elf_file, cur_mem->elf_start_offset, SEEK_SET))
                         {
