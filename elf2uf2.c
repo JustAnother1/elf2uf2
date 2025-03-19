@@ -23,6 +23,14 @@
 
 #define VERSION_STRING "0.0.1"
 
+// for UF2 file format definition see :  https://github.com/microsoft/uf2
+// flags
+#define NOT_MAIN_FLASH         0x00000001
+#define FILE_CONTAINER         0x00001000
+#define FAMILYID_PRESENT       0x00002000
+#define MD5_CHECKSUM_PRESENT   0x00004000
+#define EXTENSION_TAGS_PRESENT 0x00008000
+
 typedef struct {
     uint32_t id;
     const char* name;
@@ -134,6 +142,7 @@ static uint32_t program_table_offset = 0;
 static int number_program_table_entries = 0;
 static mem_area* memories = NULL;
 static uint32_t complete_memory_size = 0;
+static bool last_block_exact_size = false;
 
 
 static void print_usage(void);
@@ -350,7 +359,7 @@ static int copy_data(FILE* elf_file)
     UF2_Block.magicStart0 = 0x0A324655;
     UF2_Block.magicStart1 = 0x9E5D5157;
     UF2_Block.magicEnd = 0x0AB16F30;
-    UF2_Block.flags = 0x00002000;
+    UF2_Block.flags = FAMILYID_PRESENT;
     UF2_Block.fileSize = (uint32_t)(fam_id & 0xffffffff);
     UF2_Block.payloadSize = payload_size;
     UF2_Block.blockNo = 0;
@@ -381,6 +390,10 @@ static int copy_data(FILE* elf_file)
             {
                 // last block
                 copy_size = cur_mem->target_size;
+                if(true == last_block_exact_size)
+                {
+                    UF2_Block.payloadSize = copy_size;
+                }
             }
             // read from elf
             if(1 != fread(&buffer, copy_size, 1, elf_file))
@@ -464,7 +477,8 @@ static void print_usage(void)
     fprintf(stderr, "-l : list all family ids\n");
     fprintf(stderr, "-i file.elf : elf file to read\n");
     fprintf(stderr, "-o file.uf2 : file to write to\n");
-    fprintf(stderr, "if the file.uf2 is not given the uf2 file with have the same name as the elf file.\n");
+    fprintf(stderr, "-s : report exact size in last block (might not work everywhere)\n");
+    fprintf(stderr, "if the -o file.uf2 is not given the uf2 file will have the same name as the elf file.\n");
 }
 
 static int parse_command_line_parameters(int argc, char *argv[])
@@ -472,7 +486,7 @@ static int parse_command_line_parameters(int argc, char *argv[])
     int option;
     char* test;
 
-    while ((option = getopt(argc, argv, "vf:p:li:o:")) >= 0)
+    while ((option = getopt(argc, argv, "vf:p:li:o:s")) >= 0)
     {
         switch (option)
         {
@@ -521,6 +535,10 @@ static int parse_command_line_parameters(int argc, char *argv[])
 
         case 'o' : uf2_name = optarg;
            break;
+
+        case 's' :
+            last_block_exact_size = true;
+            break;
 
         case ':' : print_usage();
             return 3; // option that needs an argument did not have one.
