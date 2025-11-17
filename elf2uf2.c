@@ -291,6 +291,11 @@ static int read_program_table(FILE* elf_file)
     unsigned int prog_entry;
     Elf32_Phdr program_table;
 
+    if(0 != fseek(elf_file, program_table_offset, SEEK_SET)) {
+        fprintf(stderr, "ERROR: could not skip to the program table in %s !\n", elf_name);
+        return -1;
+    }
+
     for(prog_entry = 0; prog_entry < number_program_table_entries; prog_entry++)
     {
         if(1 != fread(&program_table, sizeof(Elf32_Phdr), 1, elf_file))
